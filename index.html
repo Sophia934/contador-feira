@@ -30,26 +30,16 @@
             padding: 20px;
         }
 
-        /* WRAPPER COM CRONÔMETRO (ESQ) + CONTADOR (DIR) */
-        .contador-wrapper {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 40px;
-            margin-bottom: 12px;
-            flex-wrap: wrap;
-        }
-
-        /* CRONÔMETRO - ESQUERDA */
+        /* CRONÔMETRO - EM CIMA */
         .cronometro-wrapper {
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-width: 200px;
+            margin-bottom: 10px;
         }
 
         .cronometro-numero {
-            font-size: 7rem;
+            font-size: 4rem;
             font-weight: 400;
             color: #1a1a1a;
             line-height: 1;
@@ -67,16 +57,16 @@
             margin-top: 2px;
         }
 
-        /* CONTADOR PRINCIPAL - DIREITA */
+        /* CONTADOR PRINCIPAL - EMBAIXO (MAIOR) */
         .contador-numero {
-            font-size: 7rem;
+            font-size: 12rem;
             font-weight: 700;
             letter-spacing: -0.03em;
             line-height: 1;
             color: #1a1a1a;
             transition: color 0.08s ease;
             font-variant-numeric: tabular-nums;
-            min-width: 160px;
+            margin: 10px 0 20px 0;
         }
 
         /* PISCADA VERMELHA */
@@ -85,22 +75,13 @@
             transition: color 0s;
         }
 
-        .contador-label {
-            font-size: 0.6rem;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            color: #bbbbbb;
-            font-weight: 500;
-            margin-top: 2px;
-        }
-
         /* ESTATÍSTICAS ABAIXO */
         .estatisticas {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
             gap: 12px 40px;
-            margin: 20px 0 40px 0;
+            margin: 10px 0 40px 0;
         }
 
         .estatistica-item {
@@ -135,32 +116,13 @@
             font-weight: 500;
         }
 
-        /* DIVISOR ENTRE CRONÔMETRO E CONTADOR */
-        .divisor {
-            font-size: 7rem;
-            font-weight: 200;
-            color: #e0e0e0;
-            line-height: 1;
-            user-select: none;
-        }
-
         /* RESPONSIVO */
         @media (max-width: 800px) {
-            .contador-wrapper {
-                gap: 20px;
-            }
             .cronometro-numero {
-                font-size: 4.5rem;
+                font-size: 3rem;
             }
             .contador-numero {
-                font-size: 4.5rem;
-                min-width: 100px;
-            }
-            .divisor {
-                font-size: 4.5rem;
-            }
-            .cronometro-wrapper {
-                min-width: 120px;
+                font-size: 7rem;
             }
             .estatisticas {
                 flex-direction: column;
@@ -173,20 +135,10 @@
 
         @media (max-width: 500px) {
             .cronometro-numero {
-                font-size: 2.8rem;
+                font-size: 2.2rem;
             }
             .contador-numero {
-                font-size: 2.8rem;
-                min-width: 70px;
-            }
-            .divisor {
-                font-size: 2.8rem;
-            }
-            .contador-wrapper {
-                gap: 10px;
-            }
-            .cronometro-wrapper {
-                min-width: 80px;
+                font-size: 4.5rem;
             }
         }
     </style>
@@ -195,20 +147,14 @@
 
 <div class="container">
 
-    <!-- CRONÔMETRO (ESQ) + CONTADOR (DIR) -->
-    <div class="contador-wrapper">
-        <!-- Cronômetro -->
-        <span class="cronometro-wrapper">
-            <span class="cronometro-numero" id="cronometro">00:00:00.00</span>
-            <span class="cronometro-label">cronômetro</span>
-        </span>
-
-        <!-- Divisor visual -->
-        <span class="divisor">|</span>
-
-        <!-- Contador de violências -->
-        <span class="contador-numero" id="contador">1</span>
+    <!-- CRONÔMETRO (EM CIMA) -->
+    <div class="cronometro-wrapper">
+        <span class="cronometro-numero" id="cronometro">00:00:00</span>
+        <span class="cronometro-label">cronômetro</span>
     </div>
+
+    <!-- CONTADOR (EMBAIXO) -->
+    <div class="contador-numero" id="contador">1</div>
 
     <!-- ESTATÍSTICAS -->
     <div class="estatisticas">
@@ -243,8 +189,6 @@
         // ----- CONFIGURAÇÕES -----
         const INTERVALO_SEGUNDOS = 15;
         const SEGUNDOS_POR_DIA = 86400;
-
-        // Feminicídio: 4 por dia (fixo)
         const FEMINICIDIOS_POR_DIA = 4;
 
         let contador = 1;
@@ -278,16 +222,15 @@
             } catch (_) { /* silencioso */ }
         }
 
-        // ----- FORMATA CRONÔMETRO (HH:MM:SS.MS) -----
+        // ----- FORMATA CRONÔMETRO (HH:MM:SS) -----
         function formatarCronometro(ms) {
             const totalSegundos = Math.floor(ms / 1000);
             const horas = Math.floor(totalSegundos / 3600);
             const minutos = Math.floor((totalSegundos % 3600) / 60);
             const segundos = totalSegundos % 60;
-            const milesimos = Math.floor((ms % 1000) / 10);
 
             const pad = (n, d) => String(n).padStart(d, '0');
-            return `${pad(horas, 2)}:${pad(minutos, 2)}:${pad(segundos, 2)}.${pad(milesimos, 2)}`;
+            return `${pad(horas, 2)}:${pad(minutos, 2)}:${pad(segundos, 2)}`;
         }
 
         // ----- ATUALIZA CRONÔMETRO (requestAnimationFrame) -----
@@ -327,8 +270,12 @@
                 ultimoReset = cronometroMs;
             }
 
-            // Atualiza display do cronômetro
-            cronometroEl.textContent = formatarCronometro(cronometroMs);
+            // Atualiza display do cronômetro (apenas a cada 1s para não pesar)
+            const segundosAtuais = Math.floor(cronometroMs / 1000);
+            const segundosAnteriores = Math.floor((cronometroMs - delta) / 1000);
+            if (segundosAtuais !== segundosAnteriores) {
+                cronometroEl.textContent = formatarCronometro(cronometroMs);
+            }
 
             animacaoId = requestAnimationFrame(atualizarCronometro);
         }
@@ -355,8 +302,7 @@
             const projecaoTotal = contador + violenciasRestantes;
             projecaoEl.textContent = projecaoTotal.toLocaleString('pt-BR');
 
-            // Feminicídios: 4 por dia (fixo)
-            // Distribui uniformemente ao longo do dia
+            // Feminicídios: 4 por dia
             const feminicidiosAteAgora = Math.floor((segundosPassadosHoje / SEGUNDOS_POR_DIA) * FEMINICIDIOS_POR_DIA);
             const feminicidiosRestantes = Math.floor((segundosRestantesDia / SEGUNDOS_POR_DIA) * FEMINICIDIOS_POR_DIA);
             const totalFeminicidios = feminicidiosAteAgora + feminicidiosRestantes;
